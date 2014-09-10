@@ -156,8 +156,26 @@ class ExportTetgenSmesh(bpy.types.Operator, ExportHelper):
 
         if (context.object):
             if (context.object.type == "MESH"):
-                mesh = context.object.data
+                ob = context.object
+                cleanup = False
+                copy = None
+                mesh = ob.data
+                if ob.modifiers:
+                    cleanup = True
+                    copy = ob.copy()
+                    # bake mesh
+                    mesh = copy.to_mesh(bpy.context.scene, True, "PREVIEW")    # collaspe
+
                 self.write_file(self.filepath, mesh)
+
+                if cleanup:
+                    copy.user_clear()
+                    bpy.data.objects.remove(copy)
+                    mesh.user_clear()
+                    bpy.data.meshes.remove(mesh)
+                    del copy
+                    del mesh
+
 
         return {'FINISHED'}
 
